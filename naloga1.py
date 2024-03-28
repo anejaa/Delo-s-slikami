@@ -3,8 +3,7 @@ import numpy as np
 
 
 def zmanjsaj_sliko(slika, sirina, visina):
-    '''Zmanjšaj sliko na velikost sirina x visina.'''
-    pass
+    return cv.resize(slika, (sirina, visina), interpolation=cv.INTER_AREA)
 
 
 def obdelaj_sliko_s_skatlami(slika, sirina_skatle, visina_skatle, barva_koze) -> list:
@@ -30,9 +29,27 @@ def doloci_barvo_koze(slika, levo_zgoraj, desno_spodaj) -> tuple:
 
 
 if __name__ == '__main__':
-    # Pripravi kamero
+    barva_koze_dolocena = False
+    barva_koze = None
+    sirina = 340
+    visina = 220
 
-    # Zajami prvo sliko iz kamere
+    cap = cv.VideoCapture(0)
+
+    while True:
+        ret, frame = cap.read()  # ret je boolean vrne true če je bil zajem slike uspešen
+        if not ret:
+            print("Napaka pri zajemu slike.")
+            break
+
+        frame = zmanjsaj_sliko(frame, sirina, visina)
+
+        cv.imshow('Zacetna slika', frame)
+
+        if cv.waitKey(1) & 0xFF == ord('n'):  # pritisni 'n' za naslednji korak
+            break
+
+    cv.destroyAllWindows()
 
     # Izračunamo barvo kože na prvi sliki
 
