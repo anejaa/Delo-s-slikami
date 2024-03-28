@@ -100,6 +100,9 @@ if __name__ == '__main__':
 
             filtrirane_skatle = filtriraj_skatle_po_barvi_koze(skatle)
 
+            for skatla in filtrirane_skatle:
+                cv.rectangle(frame, (skatla[0][0], skatla[0][1]),
+                             (skatla[0][0] + skatla[0][2], skatla[0][1] + skatla[0][3]), (0, 0, 255), 2)
         frame_count += 1
         current_time = time.time()
         elapsed_time = current_time - start_time
