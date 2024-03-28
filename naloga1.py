@@ -17,10 +17,15 @@ def obdelaj_sliko_s_skatlami(slika, sirina_skatle, visina_skatle, barva_koze) ->
     return skatle
 
 
-def prestej_piksle_z_barvo_koze(slika, barva_koze) -> int:
+def najdi_masko_hsv(slika, barva_koze):
     slika_hsv = cv.cvtColor(slika, cv.COLOR_BGR2HSV)
     maska = cv.inRange(slika_hsv, barva_koze[0], barva_koze[1])
-    return cv.countNonZero(maska)
+    return maska
+
+
+def prestej_piksle_z_barvo_koze(slika, barva_koze):
+    maska_koze = najdi_masko_hsv(slika, barva_koze)
+    return cv.countNonZero(maska_koze)
 
 
 def doloci_barvo_koze(slika, levo_zgoraj, desno_spodaj) -> tuple:
