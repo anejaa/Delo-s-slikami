@@ -1,6 +1,6 @@
 import cv2 as cv
 import numpy as np
-
+import time
 
 def zmanjsaj_sliko(slika, sirina, visina):
     return cv.resize(slika, (sirina, visina), interpolation=cv.INTER_AREA)
@@ -38,6 +38,8 @@ def doloci_barvo_koze(slika, levo_zgoraj, desno_spodaj) -> tuple:
 
 
 if __name__ == '__main__':
+    start_time = time.time()
+    frame_count = 0
     barva_koze_dolocena = False
     barva_koze = None
     sirina = 340
@@ -91,6 +93,20 @@ if __name__ == '__main__':
     # Vprašanje 1: Kako iz števila pikslov iz vsake škatle določiti celotno območje obraza (Floodfill)?
     # Vprašanje 2: Kako prešteti število ljudi?
 
-    # Kako velikost prebirne škatle vpliva na hitrost algoritma in točnost detekcije? Poigrajte se s parametroma velikost_skatle
-    # in ne pozabite, da ni nujno da je škatla kvadratna.
-    pass
+        frame_count += 1
+        current_time = time.time()
+        elapsed_time = current_time - start_time
+
+        if elapsed_time > 1:
+            fps = frame_count / elapsed_time
+            cv.putText(frame, f"FPS: {fps:.2f}", (10, 30), cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+            start_time = current_time
+            frame_count = 0
+
+        cv.imshow('Detekcija obraza', frame)
+
+        if cv.waitKey(1) & 0xFF == ord('q'):  # Pritisnite 'q' za izhod
+            break
+
+    cap.release()
+    cv.destroyAllWindows()
