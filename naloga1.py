@@ -7,18 +7,20 @@ def zmanjsaj_sliko(slika, sirina, visina):
 
 
 def obdelaj_sliko_s_skatlami(slika, sirina_skatle, visina_skatle, barva_koze) -> list:
-    '''Sprehodi se skozi sliko v velikosti škatle (sirina_skatle x visina_skatle) in izračunaj število pikslov kože v vsaki škatli.
-    Škatle se ne smejo prekrivati!
-    Vrne seznam škatel, s številom pikslov kože.
-    Primer: Če je v sliki 25 škatel, kjer je v vsaki vrstici 5 škatel, naj bo seznam oblike
-      [[1,0,0,1,1],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[1,0,0,0,1]].
-      V tem primeru je v prvi škatli 1 piksel kože, v drugi 0, v tretji 0, v četrti 1 in v peti 1.'''
-    pass
+    visina, sirina, _ = slika.shape
+    skatle = []
+    for y in range(0, visina - visina_skatle + 1, visina_skatle):
+        for x in range(0, sirina - sirina_skatle + 1, sirina_skatle):
+            pod_slika = slika[y:y + visina_skatle, x:x + sirina_skatle]
+            st_pikslov = prestej_piksle_z_barvo_koze(pod_slika, barva_koze)
+            skatle.append(((x, y, sirina_skatle, visina_skatle), st_pikslov))
+    return skatle
 
 
-def prestej_piklse_z_barvo_koze(slika, barva_koze) -> int:
-    '''Prestej število pikslov z barvo kože v škatli.'''
-    pass
+def prestej_piksle_z_barvo_koze(slika, barva_koze) -> int:
+    slika_hsv = cv.cvtColor(slika, cv.COLOR_BGR2HSV)
+    maska = cv.inRange(slika_hsv, barva_koze[0], barva_koze[1])
+    return cv.countNonZero(maska)
 
 
 def doloci_barvo_koze(slika, levo_zgoraj, desno_spodaj) -> tuple:
@@ -69,7 +71,16 @@ if __name__ == '__main__':
         cv.destroyAllWindows()
         exit()
 
-    # Zajemaj slike iz kamere in jih obdeluj
+    # Zajem in obdelava videoposnetka v realnem času
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
+
+        frame = zmanjsaj_sliko(frame, sirina, visina)
+
+        if barva_koze_dolocena:
+            skatle = obdelaj_sliko_s_skatlami(frame, int(sirina * 0.1), int(visina * 0.3), barva_koze)
 
     # Označi območja (škatle), kjer se nahaja obraz (kako je prepuščeno vaši domišljiji)
     # Vprašanje 1: Kako iz števila pikslov iz vsake škatle določiti celotno območje obraza (Floodfill)?
