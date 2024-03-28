@@ -36,6 +36,15 @@ def doloci_barvo_koze(slika, levo_zgoraj, desno_spodaj) -> tuple:
     max_barva = np.max(obmocje_koze_hsv, axis=(0, 1))
     return min_barva, max_barva
 
+def filtriraj_skatle_po_barvi_koze(skatle, prag=50):
+    filtrirane_skatle = []
+    for skatla in skatle:
+        if skatla[1] > prag:
+            filtrirane_skatle.append(skatla)
+    return filtrirane_skatle
+
+
+
 
 if __name__ == '__main__':
     start_time = time.time()
@@ -89,9 +98,7 @@ if __name__ == '__main__':
         if barva_koze_dolocena:
             skatle = obdelaj_sliko_s_skatlami(frame, int(sirina * 0.1), int(visina * 0.3), barva_koze)
 
-    # Označi območja (škatle), kjer se nahaja obraz (kako je prepuščeno vaši domišljiji)
-    # Vprašanje 1: Kako iz števila pikslov iz vsake škatle določiti celotno območje obraza (Floodfill)?
-    # Vprašanje 2: Kako prešteti število ljudi?
+            filtrirane_skatle = filtriraj_skatle_po_barvi_koze(skatle)
 
         frame_count += 1
         current_time = time.time()
