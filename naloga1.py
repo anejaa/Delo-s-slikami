@@ -36,6 +36,51 @@ def doloci_barvo_koze(slika, levo_zgoraj, desno_spodaj) -> tuple:
     max_barva = np.max(obmocje_koze_hsv, axis=(0, 1))
     return min_barva, max_barva
 
+def filtriraj_skatle_po_barvi_koze(skatle, prag=50):
+    filtrirane_skatle = []
+    for skatla in skatle:
+        if skatla[1] > prag:
+            filtrirane_skatle.append(skatla)
+    return filtrirane_skatle
+
+
+def zdruzi_sosednje_skatle(skatle, max_razdalja=70):
+    if not skatle:
+        return []
+    zdruzeni = [skatle[0]]
+    for trenutna in skatle[1:]:
+        zdruzeno = False
+        for i, z in enumerate(zdruzeni): # hkrati dostop do indexa in vrednosti
+            if so_sosednje(trenutna[0], z[0], max_razdalja):
+                nova_skatla = zdruzi([trenutna, z])
+                zdruzeni[i] = (nova_skatla, 0)
+                zdruzeno = True
+                break
+        if not zdruzeno:
+            zdruzeni.append(trenutna)
+    return zdruzeni
+
+# izračuna razdaljo med lokacijami začetnih točk (zgornji levi kot) obeh škatel
+def so_sosednje(skatla1, skatla2, max_razdalja):
+    x1, y1, _, _ = skatla1
+    x2, y2, _, _ = skatla2
+    razdalja = max(abs(x1-x2), abs(y1-y2))
+    return razdalja <= max_razdalja
+
+def zdruzi(skatli):
+    x_coords = [skatla[0][0] for skatla in skatli]  # x koordinata vseh škatel v seznamu
+    y_coords = [skatla[0][1] for skatla in skatli]  # x koordinata vseh škatel v seznamu
+
+    widths = [skatla[0][2] for skatla in skatli]
+    heights = [skatla[0][3] for skatla in skatli]  # širine in višine škatel
+
+    x_min = min(x_coords)  # najdem minimume in maximume
+    y_min = min(y_coords)
+
+    x_max = max(x_coords) + max(widths)
+    y_max = max(y_coords) + max(heights)
+    return x_min, y_min, x_max - x_min, y_max - y_min
+
 
 if __name__ == '__main__':
     start_time = time.time()
@@ -89,10 +134,13 @@ if __name__ == '__main__':
         if barva_koze_dolocena:
             skatle = obdelaj_sliko_s_skatlami(frame, int(sirina * 0.1), int(visina * 0.3), barva_koze)
 
-    # Označi območja (škatle), kjer se nahaja obraz (kako je prepuščeno vaši domišljiji)
-    # Vprašanje 1: Kako iz števila pikslov iz vsake škatle določiti celotno območje obraza (Floodfill)?
-    # Vprašanje 2: Kako prešteti število ljudi?
+            filtrirane_skatle = filtriraj_skatle_po_barvi_koze(skatle)
 
+            zdruzene_skatle = zdruzi_sosednje_skatle(filtrirane_skatle)
+
+            for skatla in zdruzene_skatle:
+                cv.rectangle(frame, (skatla[0][0], skatla[0][1]),
+                             (skatla[0][0] + skatla[0][2], skatla[0][1] + skatla[0][3]), (0, 0, 255), 2)
         frame_count += 1
         current_time = time.time()
         elapsed_time = current_time - start_time
