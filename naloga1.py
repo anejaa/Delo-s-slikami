@@ -22,10 +22,12 @@ def prestej_piklse_z_barvo_koze(slika, barva_koze) -> int:
 
 
 def doloci_barvo_koze(slika, levo_zgoraj, desno_spodaj) -> tuple:
-    '''Ta funkcija se kliče zgolj 1x na prvi sliki iz kamere.
-    Vrne barvo kože v območju ki ga definira oklepajoča škatla (levo_zgoraj, desno_spodaj).
-      Način izračuna je prepuščen vaši domišljiji.'''
-    pass
+    obmocje_koze = slika[levo_zgoraj[1]:desno_spodaj[1],
+                   levo_zgoraj[0]:desno_spodaj[0]]  # določimo y:visina in x:širina območja koze
+    obmocje_koze_hsv = cv.cvtColor(obmocje_koze, cv.COLOR_BGR2HSV)
+    min_barva = np.min(obmocje_koze_hsv, axis=(0, 1))  # iščemo minimalne vrednost po x in y
+    max_barva = np.max(obmocje_koze_hsv, axis=(0, 1))
+    return min_barva, max_barva
 
 
 if __name__ == '__main__':
@@ -51,7 +53,21 @@ if __name__ == '__main__':
 
     cv.destroyAllWindows()
 
-    # Izračunamo barvo kože na prvi sliki
+    r = cv.selectROI("Izberi obmocje koze", frame)  # enter
+
+    levo_zgoraj = (int(r[0]), int(r[1]))
+    desno_spodaj = (int(r[0] + r[2]), int(r[1] + r[3]))
+    cv.destroyWindow("Izberi obmocje koze")
+
+    if r[2] > 0 and r[3] > 0:  # preverjanje da ixor ni prazen
+        barva_koze = doloci_barvo_koze(frame, levo_zgoraj, desno_spodaj)
+        barva_koze_dolocena = True
+
+    if not barva_koze_dolocena:
+        print("Barva kože ni bila določena. Zapiram program.")
+        cap.release()
+        cv.destroyAllWindows()
+        exit()
 
     # Zajemaj slike iz kamere in jih obdeluj
 
