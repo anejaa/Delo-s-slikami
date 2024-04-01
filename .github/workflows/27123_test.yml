@@ -21,29 +21,28 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install opencv-python numpy
-      - name: Run script and check for errors
-        id: check_error
-        run: |
-          python naloga1.py || echo "ERROR" > napaka.txt
-          if [ -f napaka.txt ]; then
-            echo "::set-output name=has_error::true"
-          else
-            echo "::set-output name=has_error::false"
-          fi
-      - uses: actions/upload-artifact@v2
-        with:
-          name: error-report
-          path: napaka.txt
+      - name: Run script
+        run: python naloga1.py 2> napaka.txt
+          - name: Upload error file
+            uses: actions/upload-artifact@v2
+            if: always()
+            with:
+              name: error-report
+              path: napaka.txt
 
   run_tests:
     needs: setup_environment
-    if: needs.setup_environment.outputs.has_error == 'false'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions/download-artifact@v2
         with:
           name: error-report
-      - name: Run tests
+      - name: Check for error report
         run: |
-          python test_obdelave_slike.py
+          if [ -s napaka.txt ]; then
+            cat napaka.txt
+            exit 1
+          fi
+      - name: Run tests
+        run: python test_obdelave_slike.py
