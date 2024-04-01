@@ -23,12 +23,12 @@ jobs:
           pip install opencv-python numpy
       - name: Run script
         run: python naloga1.py 2> napaka.txt
-          - name: Upload error file
-            uses: actions/upload-artifact@v2
-            if: always()
-            with:
-              name: error-report
-              path: napaka.txt
+      - name: Upload error file
+        uses: actions/upload-artifact@v2
+        if: always()
+        with:
+          name: error-report
+          path: napaka.txt
 
   run_tests:
     needs: setup_environment
