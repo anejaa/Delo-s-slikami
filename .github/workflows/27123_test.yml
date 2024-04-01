@@ -24,11 +24,12 @@ jobs:
       - name: Run script and check for errors
         id: check_error
         run: |
-          python naloga1.py || echo "ERROR" > napaka.txt
-          if [ -f napaka.txt ]; then
-            echo "::set-output name=has_error::true"
+          python naloga1.py > output.txt 2>&1
+          if [ $? -ne 0 ]; then
+            echo "ERROR" > napaka.txt
+            echo "has_error=true" >> $GITHUB_ENV
           else
-            echo "::set-output name=has_error::false"
+            echo "has_error=false" >> $GITHUB_ENV
           fi
       - uses: actions/upload-artifact@v2
         with:
@@ -37,13 +38,13 @@ jobs:
 
   run_tests:
     needs: setup_environment
-    if: needs.setup_environment.outputs.has_error == 'false'
+    if: env.has_error == 'false'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions/download-artifact@v2
         with:
           name: error-report
-      - name: Run custom tests without pytest
+      - name: Run tests
         run: |
           python test_obdelave_slike.py
