@@ -41,7 +41,6 @@ jobs:
             echo "Napake so bile zaznane v prvem poslu."
             cat napaka.txt
             exit 1
-          else
-            echo "No errors found, proceeding to run tests."
+          fi
       - name: Run tests
         run: python3 test_obdelave_slike.py
