@@ -7,7 +7,7 @@ on:
 
 jobs:
   setup_environment:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     strategy:
       matrix:
         python-version: [ '3.7', '3.8', '3.9' ]
@@ -21,18 +21,19 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install opencv-python numpy
-      - name: Run script
-        run: python naloga1.py 2> napaka.txt
-      - name: Upload error file
+      - name: Test script for errors
+        run: |
+          touch napaka.txt
+      - name: Upload error file if exists and not empty
         uses: actions/upload-artifact@v2
-        if: always()
+        if: failure()
         with:
           name: error-report
           path: napaka.txt
 
   run_tests:
     needs: setup_environment
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v2
       - uses: actions/download-artifact@v2
@@ -41,8 +42,10 @@ jobs:
       - name: Check for error report
         run: |
           if [ -s napaka.txt ]; then
+            echo "Napake so bile zaznane v prvem poslu."
             cat napaka.txt
             exit 1
           fi
       - name: Run tests
         run: python test_obdelave_slike.py
+
