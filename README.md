@@ -1,4 +1,4 @@
-# Detekcija kože v videoposnetkih
+# Detekcija kože
 
 #### Ta projekt je namenjen detekciji kože v realnem času v videoposnetkih. Program omogoča zaznavanje kožnih območij na podlagi določene barve kože.
 
