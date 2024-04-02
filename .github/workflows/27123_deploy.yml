@@ -1,15 +1,16 @@
 name: Deploy to DockerHub
 
-env:
-  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-  DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-  REPO_NAME: ${{ secrets.REPO_NAME }}
 on:
   workflow_run:
     workflows: ["Run Tests"]
     branches: [main]
     types:
       - completed
+
+env:
+  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+  REPO_NAME: ${{ secrets.REPO_NAME }}
 
 jobs:
   deploy:
