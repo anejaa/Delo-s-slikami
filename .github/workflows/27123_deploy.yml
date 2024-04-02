@@ -1,0 +1,32 @@
+name: Deploy to DockerHub
+
+on:
+  workflow_run:
+    workflows: ["Run Tests"]
+    branches: [main]
+    types:
+      - completed
+    conditions: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+env:
+  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+  REPO_NAME: ${{ secrets.REPO_NAME }}
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout repozitorija
+        uses: actions/checkout@v2
+
+      - name: Login to Docker
+        run: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+
+      - name: Current time
+        run: echo "CURRENT_DATE=$(date +'%Y-%m-%d--%H-%M-%S')" >> $GITHUB_ENV
+
+      - name: Build and push Docker image
+        run: |
+          docker build . --file Dockerfile --tag $DOCKER_USERNAME/$REPO_NAME:${{ env.CURRENT_DATE }}
+          docker push $DOCKER_USERNAME/$REPO_NAME:${{ env.CURRENT_DATE }}
