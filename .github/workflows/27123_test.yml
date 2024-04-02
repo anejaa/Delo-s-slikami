@@ -21,7 +21,7 @@ jobs:
           python -m pip install --upgrade pip && pip install opencv-python numpy 2> napaka.txt
       - name: Upload error file if exists and not empty
         uses: actions/upload-artifact@v4
-        if: always()
+        if: failure()
         with:
           name: error-report
           path: napaka.txt
@@ -39,10 +39,16 @@ jobs:
           name: error-report
       - name: Check for error report
         run: |
-          if [ -s napaka.txt ]; then
-            echo "Napake so bile zaznane v prvem poslu."
-            cat napaka.txt
-            exit 1
+          if [ -f napaka.txt ]; then
+            if [ -s napaka.txt ]; then
+              echo "Napake so bile zaznane v prvem poslu."
+              cat napaka.txt
+              exit 1
+            else
+              echo "Datoteka napaka.txt je prazna, nadaljujem z izvajanjem testov."
+            fi
+          else
+            echo "Datoteka napaka.txt ni prisotna, nadaljujem z izvajanjem testov."
           fi
       - name: Run tests
         run: python3 test_obdelave_slike.py
