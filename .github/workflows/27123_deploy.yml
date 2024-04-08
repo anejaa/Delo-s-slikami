@@ -29,6 +29,9 @@ jobs:
       - name: Current time
         run: echo "CURRENT_DATE=$(date +'%Y-%m-%d--%H-%M-%S')" >> $GITHUB_ENV # Shrani trenutni čas v okoljsko spremenljivko za uporabo pri oznaki slike
 
+      - name: Set execute permission for the script
+        run: chmod +x ./zapakiraj_27123.sh
+
       - name: Build and push Docker image using script
         env: # Določanje lokalnega okolja za ta korak
           CURRENT_DATE: ${{ env.CURRENT_DATE }}
