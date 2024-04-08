@@ -1,30 +1,35 @@
+# Ime delovnega toka, ki opisuje njegov namen
 name: Deploy to DockerHub
 
+# Okoljske spremenljivke, ki se uporabijo v delovnem toku
 env:
-  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-  DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-  REPO_NAME: ${{ secrets.REPO_NAME }}
+  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }} # Docker uporabniško ime, pridobljeno iz GitHub skrivnosti
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }} # Docker geslo, pridobljeno iz GitHub skrivnosti
+  REPO_NAME: ${{ secrets.REPO_NAME }} # Ime Docker repozitorija, pridobljeno iz GitHub skrivnosti
+
+# Dogodki, ki sprožijo delovni tok; v tem primeru je to uspešno zaključen delovni tok "Run Tests"
 on:
   workflow_run:
-    workflows: ["Run Tests"]
-    branches: [main]
+    workflows: ["Run Tests"] # Ime delovnega toka, ki mora biti uspešen pred tem delovnim tokom
+    branches: [main] # Veja, na kateri mora delovni tok teči
     types:
-      - completed
+      - completed # Vrsta dogodka, ki sproži delovni tok, tu končanje prejšnjega delovnega toka
 
+# Opravila, ki se izvedejo kot del delovnega toka
 jobs:
   deploy:
-    runs-on: self-hosted
-    steps:
+    runs-on: self-hosted # Določa, da se delovni tok izvaja na lastni infrastrukturi
+    steps: # Posamezni koraki opravila
       - name: Checkout repozitorija
-        uses: actions/checkout@v2
+        uses: actions/checkout@v2 # Pridobi najnovejšo kodo iz repozitorija
 
       - name: Login to Docker
-        run: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+        run: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD # Prijava v Docker s poverilnicami iz okoljskih spremenljivk
 
       - name: Current time
-        run: echo "CURRENT_DATE=$(date +'%Y-%m-%d--%H-%M-%S')" >> $GITHUB_ENV
+        run: echo "CURRENT_DATE=$(date +'%Y-%m-%d--%H-%M-%S')" >> $GITHUB_ENV # Shrani trenutni čas v okoljsko spremenljivko za uporabo pri oznaki slike
 
-      - name: Build and push Docker image
-        run: |
-          docker build . --file Dockerfile --tag $DOCKER_USERNAME/$REPO_NAME:${{ env.CURRENT_DATE }}
-          docker push $DOCKER_USERNAME/$REPO_NAME:${{ env.CURRENT_DATE }}
+      - name: Build and push Docker image using script
+        env: # Določanje lokalnega okolja za ta korak
+          CURRENT_DATE: ${{ env.CURRENT_DATE }}
+        run: ./zapakiraj_27123.sh ${{ secrets.DOCKER_USERNAME }} ${{ secrets.DOCKER_PASSWORD }} ${{ secrets.REPO_NAME }}

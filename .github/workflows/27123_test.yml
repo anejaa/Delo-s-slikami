@@ -1,52 +1,62 @@
+# Ime delovnega toka
 name: Run Tests
 
+# Dogodki, ki sprožijo delovni tok, v tem primeru push na main vejo
 on:
   push:
     branches:
       - main
 
+# Opravila, ki jih delovni tok vsebuje
 jobs:
+  # Opravilo za pripravo okolja
   setup_environment:
+    # Izvajalnik za opravilo, v tem primeru na lastni strojni opremi (self-hosted)
     runs-on: self-hosted
+    # Strategija za opravilo, uporaba matrične strategije za več Python verzij
     strategy:
       matrix:
         python-version: [ '3.8', '3.9' ]
+    # Koraki znotraj opravila
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v2  # Pridobi kodo iz repozitorija
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v2  # Nastavi Python okolje z verzijami iz matrike
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install system dependencies
-        run: sudo apt-get update && sudo apt-get install -y libgl1-mesa-glx
+        run: sudo apt-get update && sudo apt-get install -y libgl1-mesa-glx  # Namesti sistemske odvisnosti
       - name: Install dependencies and check for errors
         run: |
-          python -m pip install --upgrade pip && pip install opencv-python numpy 2> napaka.txt
+          python -m pip install --upgrade pip  # Nadgradi pip
+          pip install opencv-python numpy 2> napaka.txt  # Namesti potrebne Python pakete in preusmeri morebitne napake v datoteko
       - name: Upload error file if exists and not empty
-        uses: actions/upload-artifact@v4
-        if: always()
+        uses: actions/upload-artifact@v4  # Naloži datoteko napaka.txt kot artefakt, če ta obstaja in ni prazna
+        if: always()  # Izvede se ne glede na rezultat predhodnih korakov
         with:
-          name: error-report-py${{ matrix.python-version }}
+          name: error-report-py${{ matrix.python-version }}  # Dinamično imenovanje artefakta glede na Python verzijo
           path: napaka.txt
 
+  # Drugo opravilo, ki je odvisno od opravila setup_environment
   run_tests:
-    needs: setup_environment
-    runs-on: self-hosted
+    needs: setup_environment  # Potrebuje zaključek opravila setup_environment
+    runs-on: self-hosted  # Ponovna uporaba samogostiteljskega izvajalnika
     strategy:
       matrix:
         python-version: [ '3.8', '3.9' ]
+    # Koraki znotraj opravila
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v2  # Ponovno pridobi kodo iz repozitorija
+      - uses: actions/setup-python@v2  # Ponovno nastavi Python okolje
         with:
           python-version: ${{ matrix.python-version }}
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4  # Prenese artefakt napaka.txt, če ta obstaja
       - name: Check for error report
         run: |
-          if [ -s napaka.txt ]; then
+          if [ -s napaka.txt ]; then  # Preveri, če je datoteka napaka.txt polna (s -s preverimo, ali ima datoteka vsebino)
             echo "Napake so bile zaznane v prvem poslu."
-            cat napaka.txt
-            exit 1
+            cat napaka.txt  # Izpiše vsebino datoteke napaka.txt
+            exit 1  # Izhod s kodo 1, ki signalizira napako
           fi
       - name: Run tests
-        run: python test_obdelave_slike.py
+        run: python test_obdelave_slike.py  # Zagon testov z Python skripto
